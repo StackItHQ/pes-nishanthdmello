@@ -47,35 +47,40 @@ except:
     print('getting table from google sheets failed...')
 
 
-# google sheet to sql
-try:
-    data = table.get_all_values()
-    headers = get_google_headers(data)
-    rows = get_google_rows(data)
-    print(headers)
-    print(rows)
-    query = f"DROP TABLE IF EXISTS {table_name};"
-    sql.execute(query)
-    conn.commit()
-    if headers or rows:
-        query = f"CREATE TABLE {table_name} (" + ", ".join([f"`{header}` VARCHAR(255)" for header in headers if header]) + ");"
+while True:
+
+    # google sheet to sql
+    try:
+        data = table.get_all_values()
+        headers = get_google_headers(data)
+        rows = get_google_rows(data)
+        print(headers)
+        print(rows)
+        query = f"DROP TABLE IF EXISTS {table_name};"
         sql.execute(query)
-        query = f"INSERT INTO {table_name} ({', '.join(headers)}) VALUES ({', '.join(['%s'] * len(headers))});"
-        for row in rows:
-            sql.execute(query, row)
         conn.commit()
-except:
-    print('failed to put data from google sheets to sql...')
+        if headers or rows:
+            query = f"CREATE TABLE {table_name} (" + ", ".join([f"`{header}` VARCHAR(255)" for header in headers if header]) + ");"
+            sql.execute(query)
+            query = f"INSERT INTO {table_name} ({', '.join(headers)}) VALUES ({', '.join(['%s'] * len(headers))});"
+            for row in rows:
+                sql.execute(query, row)
+            conn.commit()
+    except:
+        print('failed to put data from google sheets to sql...')
 
 
-# sql to google sheet
-try:
-    rows = get_sql_rows(sql, table_name)
-    headers = get_sql_headers(sql, table_name)
-    data = [headers] + rows
-    print(data)
+    # sql to google sheet
+    try:
+        rows = get_sql_rows(sql, table_name)
+        headers = get_sql_headers(sql, table_name)
+        data = [headers] + rows
+        print(data)
 
-    table.clear()
-    table.update(values=data, range_name='A1')
-except:
-    print('failed to put data from sql to google sheets...')
+        table.clear()
+        table.update(values=data, range_name='A1')
+    except:
+        print('failed to put data from sql to google sheets...')
+
+
+    time.sleep(5)
