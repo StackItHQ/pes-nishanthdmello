@@ -44,7 +44,7 @@ def hash_list(input_list):
 
 def update_sql(data, table_name, sql, conn):
 
-    print('sql should be changed')
+    # print('sql should be changed')
     headers = get_google_headers(data)
     rows = get_google_rows(data)
     query = f"DROP TABLE IF EXISTS {table_name};"
@@ -60,6 +60,6 @@ def update_sql(data, table_name, sql, conn):
 
 
 def update_google(table, data):
-    print('google should be changed')
+    # print('google should be changed')
     table.clear()
     table.update(values=data, range_name='A1')

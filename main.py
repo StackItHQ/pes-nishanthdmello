@@ -53,31 +53,33 @@ while True:
     sql.execute(query)
     data = sql.fetchall()
     per_hash = data[0][0]
-    print(per_hash)
+    # print(per_hash)
     new_hash = per_hash
 
 
     # google sheet to sql
     data = table.get_all_values()
     hash = hash_list(data)
-    print("google", data, "---->", hash)
+    # print("google", data, "---->", hash)
 
     if hash != per_hash:
         new_hash = hash
         update_sql(data, table_name, sql, conn)
         
-    else:
         
-        # sql to google sheet
-        rows = get_sql_rows(sql, table_name)
-        headers = get_sql_headers(sql, table_name)
-        data = [headers] + rows
-        hash = hash_list(data)
-        print("sql", data, "---->", hash)
+    # sql to google sheet
+    query = f"USE {database};"
+    sql.execute(query)
+    conn.commit()
+    rows = get_sql_rows(sql, table_name)
+    headers = get_sql_headers(sql, table_name)
+    data = [headers] + rows
+    hash = hash_list(data)
+    # print("sql", data, "---->", hash)
 
-        if hash != per_hash:
-            new_hash = hash
-            update_google(table, data)
+    if hash != per_hash:
+        new_hash = hash
+        update_google(table, data)
             
 
     if new_hash != per_hash:
