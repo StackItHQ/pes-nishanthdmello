@@ -38,3 +38,10 @@ try:
     conn.commit()
 except:
     print('creation of database failed...')
+
+
+try:
+    table = sheet.get_worksheet(0)
+    table_name = table.title
+except:
+    print('getting table from google sheets failed...')
