@@ -66,3 +66,16 @@ try:
         conn.commit()
 except:
     print('failed to put data from google sheets to sql...')
+
+
+# sql to google sheet
+try:
+    rows = get_sql_rows(sql, table_name)
+    headers = get_sql_headers(sql, table_name)
+    data = [headers] + rows
+    print(data)
+
+    table.clear()
+    table.update(values=data, range_name='A1')
+except:
+    print('failed to put data from sql to google sheets...')
