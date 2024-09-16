@@ -6,7 +6,6 @@ from MySQL_Connection import connect_to_mysql
 from functions import *
 import time
 
-
 conn=connect_to_mysql()
 sql = conn.cursor()
 
@@ -49,38 +48,42 @@ except:
 
 while True:
 
+
+    query = f"SELECT * FROM per_hash;"
+    sql.execute(query)
+    data = sql.fetchall()
+    per_hash = data[0][0]
+    print(per_hash)
+    new_hash = per_hash
+
+
     # google sheet to sql
-    try:
-        data = table.get_all_values()
-        headers = get_google_headers(data)
-        rows = get_google_rows(data)
-        print(headers)
-        print(rows)
-        query = f"DROP TABLE IF EXISTS {table_name};"
-        sql.execute(query)
-        conn.commit()
-        if headers or rows:
-            query = f"CREATE TABLE {table_name} (" + ", ".join([f"`{header}` VARCHAR(255)" for header in headers if header]) + ");"
-            sql.execute(query)
-            query = f"INSERT INTO {table_name} ({', '.join(headers)}) VALUES ({', '.join(['%s'] * len(headers))});"
-            for row in rows:
-                sql.execute(query, row)
-            conn.commit()
-    except:
-        print('failed to put data from google sheets to sql...')
+    data = table.get_all_values()
+    hash = hash_list(data)
+    print("google", data, "---->", hash)
 
-
-    # sql to google sheet
-    try:
+    if hash != per_hash:
+        new_hash = hash
+        update_sql(data, table_name, sql, conn)
+        
+    else:
+        
+        # sql to google sheet
         rows = get_sql_rows(sql, table_name)
         headers = get_sql_headers(sql, table_name)
         data = [headers] + rows
-        print(data)
+        hash = hash_list(data)
+        print("sql", data, "---->", hash)
 
-        table.clear()
-        table.update(values=data, range_name='A1')
-    except:
-        print('failed to put data from sql to google sheets...')
+        if hash != per_hash:
+            new_hash = hash
+            update_google(table, data)
+            
+
+    if new_hash != per_hash:
+        query = f"UPDATE per_hash SET hash = '{new_hash}' WHERE hash = '{per_hash}';"
+        sql.execute(query)
+        conn.commit()
 
 
     time.sleep(5)
