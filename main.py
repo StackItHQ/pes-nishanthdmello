@@ -45,3 +45,24 @@ try:
     table_name = table.title
 except:
     print('getting table from google sheets failed...')
+
+
+# google sheet to sql
+try:
+    data = table.get_all_values()
+    headers = get_google_headers(data)
+    rows = get_google_rows(data)
+    print(headers)
+    print(rows)
+    query = f"DROP TABLE IF EXISTS {table_name};"
+    sql.execute(query)
+    conn.commit()
+    if headers or rows:
+        query = f"CREATE TABLE {table_name} (" + ", ".join([f"`{header}` VARCHAR(255)" for header in headers if header]) + ");"
+        sql.execute(query)
+        query = f"INSERT INTO {table_name} ({', '.join(headers)}) VALUES ({', '.join(['%s'] * len(headers))});"
+        for row in rows:
+            sql.execute(query, row)
+        conn.commit()
+except:
+    print('failed to put data from google sheets to sql...')
